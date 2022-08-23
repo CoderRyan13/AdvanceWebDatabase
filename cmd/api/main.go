@@ -4,6 +4,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -12,16 +13,19 @@ import (
 
 // The application version number
 const version = "1.0.0"
+
 // The configuration settings
 type config struct {
-	port int,
-	env string // development, staging, production, etc.
+	port int
+	env  string // development, staging, production, etc.
 }
-//Dependency Injection
+
+// Dependency Injection
 type application struct {
-	config config,
+	config config
 	logger *log.Logger
 }
+
 func main() {
 	var cfg config
 	// read in the flags that are needed to populate our config
@@ -29,21 +33,21 @@ func main() {
 	flag.StringVar(&cfg.env, "env", "development", "Environment (development | staging | production")
 	flag.Parse()
 	// Create a logger
-	logger := log.New(os.Stdout, "", log.Ldate | log.Ltime)
+	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
 	// Create an instance of our application struct
-	app := &application {
+	app := &application{
 		config: cfg,
-		logger: logger 
+		logger: logger,
 	}
 	// Create our new servemux
 	mux := http.NewServeMux()
 	mux.HandleFunc("/v1/healthcheck", app.healthcheckHandler)
 	// Create our HTTP server
-	srv := &http.Server {
-		Addr: fmt.Sprintf(":%d", cfg.port),
-		Handler: mux,
-		IdleTimeout: time.Minute,
-		ReadTimeout: 10 * time.Second,
+	srv := &http.Server{
+		Addr:         fmt.Sprintf(":%d", cfg.port),
+		Handler:      mux,
+		IdleTimeout:  time.Minute,
+		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 30 * time.Second,
 	}
 	// Start our server
